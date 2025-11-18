@@ -29,11 +29,15 @@ public class OrderUtil {
             if (row == null || row.isBlank()) {
                 continue;  // daca e gol skip la next , check better if the line is malformed
             }
-            if (!(row.matches("^O-\\d+$"))) {   // Good: O-1001 , O-1 , O-9999
+            if (!(row.startsWith("O-"))) {
                 continue;
             }
 
             String[] splitRow = row.split(",");
+
+            if(!(splitRow[0].matches("^O-\\d+$"))){
+                continue;
+            }
 
             if (splitRow.length < 7) {    // daca are sub 7 coloane --> malformed
                 continue;
