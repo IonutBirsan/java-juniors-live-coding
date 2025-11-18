@@ -35,12 +35,12 @@ public class OrderUtil {
 
             String[] splitRow = row.split(",");
 
-            if(!(splitRow[0].matches("^O-\\d+$")) ||              // check for orderId to be O-1001 , O-1002
-                    !(splitRow[1].matches("^C-\\d{3}$"))){        // check for customerId to be C-001 , C-002
+            if (splitRow.length != 7) {    // daca are sub sau peste 7 coloane --> malformed
                 continue;
             }
 
-            if (splitRow.length != 7) {    // daca are sub sau peste 7 coloane --> malformed
+            if(!(splitRow[0].matches("^O-\\d+$")) ||              // check for orderId to be O-1001 , O-1002
+                    !(splitRow[1].matches("^C-\\d{3}$"))){        // check for customerId to be C-001 , C-002
                 continue;
             }
 
