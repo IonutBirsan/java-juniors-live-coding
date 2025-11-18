@@ -31,7 +31,6 @@ public class Order {
         this.productName = productName;
     }
 
-
     public Integer getQuantity() {
         return quantity;
     }

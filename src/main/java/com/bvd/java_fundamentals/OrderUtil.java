@@ -20,16 +20,16 @@ public class OrderUtil {
 
         List<Order> result = new ArrayList<>();
 
-        if (lines == null) {
+        if (lines == null || lines.isEmpty()) {
             return result;
         }
 
         for (String row :
                 lines) {
-            if (row == null) {
+            if (row == null || row.isBlank()) {
                 continue;  // daca e gol skip la next , check better if the line is malformed
             }
-            if (!(row.startsWith("O-"))) {   // de adaugat o verificare mai buna??
+            if (!(row.matches("^O-\\d+$"))) {   // Good: O-1001 , O-1 , O-9999
                 continue;
             }
 
@@ -39,15 +39,16 @@ public class OrderUtil {
                 continue;
             }
 
-            System.out.println(Arrays.toString(splitRow));
+            System.out.println("ex1---------------" + Arrays.toString(splitRow));
+
             Order order = new Order(
                     splitRow[0].trim(),
                     splitRow[1].trim(),
-                    LocalDate.parse(splitRow[2]),
+                    LocalDate.parse(splitRow[2].trim()),
                     splitRow[3].trim(),
                     splitRow[4].trim(),
-                    new BigDecimal(splitRow[5]),
-                    Integer.parseInt(splitRow[6])
+                    new BigDecimal(splitRow[5].trim()),
+                    Integer.parseInt(splitRow[6].trim())
             );
 
             result.add(order);
@@ -62,7 +63,7 @@ public class OrderUtil {
 
         Map<LocalDate, BigDecimal> result = new HashMap<>();
 
-        if (orders == null) {
+        if (orders == null || orders.isEmpty()) {
             return result;
         }
 
@@ -87,16 +88,11 @@ public class OrderUtil {
 
         List<Map.Entry<String, BigDecimal>> result = new ArrayList<>();
 
-        if (orders == null) {
-            return result;
-        }
-        if (n < 1) {
+        if (orders == null || orders.isEmpty() || n < 1) {
             return result;
         }
 
-        Map<String, BigDecimal> revenuePerProd = new HashMap<>();
-
-        revenuePerProd = orders.stream()
+        Map<String, BigDecimal> revenuePerProd = orders.stream()
                 .collect(Collectors.groupingBy(
                         Order::getProductName,
                         Collectors.reducing(
@@ -106,6 +102,7 @@ public class OrderUtil {
                                 BigDecimal::add
                         )
                 ));
+
         System.out.println("ex3-----------------------------------" + revenuePerProd);
 
         result = revenuePerProd.entrySet().stream()
@@ -121,20 +118,20 @@ public class OrderUtil {
 
         List<String> result = new ArrayList<>();
 
-        if (orders == null) {
+        if (orders == null || orders.isEmpty() || minCategories < 1) {
             return result;
         }
 
-        Map<String, Set<String>> intermediatMap = orders.stream()
+        Map<String, Set<String>> intermediateMap = orders.stream()
                 .collect(Collectors.groupingBy(
                                 Order::getCustomerId,
                                 Collectors.mapping(Order::getCategory, Collectors.toSet())
                         )
                 );
 
-        System.out.println("ex 4----------------------------------------" + intermediatMap);
+        System.out.println("ex 4----------------------------------------" + intermediateMap);
 
-        result = intermediatMap.entrySet().stream()
+        result = intermediateMap.entrySet().stream()
                 .filter(x -> x.getValue().size() >= minCategories)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
@@ -147,15 +144,12 @@ public class OrderUtil {
     // find the first product containing a given substring (case-insensitive)
     public static Optional<Order> findFirstProductContaining(final List<Order> orders, final String product) {
 
-        if (orders == null) {
-            return Optional.empty();
-        }
-        if (product == null) {
+        if (orders == null || product == null) {
             return Optional.empty();
         }
 
         Optional<Order> op = orders.stream()
-                .filter(x -> x.getProductName().contains(product))
+                .filter(x -> x.getProductName().toLowerCase().contains(product.toLowerCase()))
                 .findFirst();
 
         System.out.println("ex 5 ----------------------------------" + op);
