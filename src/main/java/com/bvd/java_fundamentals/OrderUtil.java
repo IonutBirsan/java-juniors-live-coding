@@ -4,10 +4,8 @@ import com.bvd.java_fundamentals.model.Order;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
+import java.util.stream.Collectors;
 
 /*
  * Implement the methods below so that the requirements are met.
@@ -19,32 +17,138 @@ public class OrderUtil {
 
     // retrieve orders from csv lines
     public static List<Order> parseCsvLines(final List<String> lines) {
-        // Write your code here and replace the return statement
-        return Collections.emptyList();
+
+        List<Order> result = new ArrayList<>();
+
+        if (lines == null || lines.isEmpty()) {
+            return result;
+        }
+
+        for (String row :
+                lines) {
+            if (row == null || row.isBlank()) {
+                continue;  // daca e gol skip la next , check better if the line is malformed
+            }
+            if (!(row.startsWith("O-"))) {
+                continue;
+            }
+
+            String[] splitRow = row.split(",");
+
+            if (splitRow.length != 7) {    // daca are sub sau peste 7 coloane --> malformed
+                continue;
+            }
+
+            if(!(splitRow[0].matches("^O-\\d+$")) ||              // check for orderId to be O-1001 , O-1002
+                    !(splitRow[1].matches("^C-\\d{3}$"))){        // check for customerId to be C-001 , C-002
+                continue;
+            }
+
+
+            Order order = new Order(
+                    splitRow[0].trim(),
+                    splitRow[1].trim(),
+                    LocalDate.parse(splitRow[2].trim()),
+                    splitRow[3].trim(),
+                    splitRow[4].trim(),
+                    new BigDecimal(splitRow[5].trim()),
+                    Integer.parseInt(splitRow[6].trim())
+            );
+
+            result.add(order);
+        }
+
+        return result;
     }
 
     // calculate revenue by day
     // revenue = unitPrice * quantity
     public static Map<LocalDate, BigDecimal> revenueByDay(final List<Order> orders) {
-        // Write your code here and replace the return statement
-        return Collections.emptyMap();
+
+        Map<LocalDate, BigDecimal> result = new HashMap<>();
+
+        if (orders == null || orders.isEmpty()) {
+            return result;
+        }
+
+        result = orders.stream()
+                .collect(Collectors.groupingBy(
+                        Order::getOrderDate,
+                        Collectors.reducing(
+                                BigDecimal.ZERO,
+                                order -> order.getUnitPrice()
+                                        .multiply(BigDecimal.valueOf(order.getQuantity())),
+                                BigDecimal::add
+                        )
+                ));
+
+        return result;
     }
 
     // get top "n" products by revenue
     public static List<Map.Entry<String, BigDecimal>> topProductsByRevenue(final List<Order> orders, final int n) {
-        // Write your code here and replace the return statement
-        return Collections.emptyList();
+
+        List<Map.Entry<String, BigDecimal>> result = new ArrayList<>();
+
+        if (orders == null || orders.isEmpty() || n < 1) {
+            return result;
+        }
+
+        Map<String, BigDecimal> revenuePerProd = orders.stream()
+                .collect(Collectors.groupingBy(
+                        Order::getProductName,
+                        Collectors.reducing(
+                                BigDecimal.ZERO,
+                                order -> order.getUnitPrice()
+                                        .multiply(BigDecimal.valueOf(order.getQuantity())),
+                                BigDecimal::add
+                        )
+                ));
+
+        result = revenuePerProd.entrySet().stream()
+                .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
+                .limit(n)
+                .collect(Collectors.toList());
+
+        return result;
     }
 
     // get customers who ordered products from at least "minCategories" different categories
     public static List<String> customersWithCategoryDiversity(final List<Order> orders, final int minCategories) {
-        // Write your code here and replace the return statement
-        return Collections.emptyList();
+
+        List<String> result = new ArrayList<>();
+
+        if (orders == null || orders.isEmpty() || minCategories < 1) {
+            return result;
+        }
+
+        Map<String, Set<String>> intermediateMap = orders.stream()
+                .collect(Collectors.groupingBy(
+                                Order::getCustomerId,
+                                Collectors.mapping(Order::getCategory, Collectors.toSet())
+                        )
+                );
+
+        result = intermediateMap.entrySet().stream()
+                .filter(x -> x.getValue().size() >= minCategories)
+                .map(Map.Entry::getKey)
+                .collect(Collectors.toList());
+
+
+        return result;
     }
 
     // find the first product containing a given substring (case-insensitive)
     public static Optional<Order> findFirstProductContaining(final List<Order> orders, final String product) {
-        // Write your code here and replace the return statement
-        return Optional.empty();
+
+        if (orders == null || product == null) {
+            return Optional.empty();
+        }
+
+        Optional<Order> op = orders.stream()
+                .filter(x -> x.getProductName().toLowerCase().contains(product.toLowerCase()))
+                .findFirst();
+
+        return op;
     }
 }
