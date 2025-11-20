@@ -44,7 +44,6 @@ public class OrderUtil {
                 continue;
             }
 
-            System.out.println("ex1---------------" + Arrays.toString(splitRow));
 
             Order order = new Order(
                     splitRow[0].trim(),
@@ -83,8 +82,6 @@ public class OrderUtil {
                         )
                 ));
 
-        System.out.println("ex2---------------------------" + result.entrySet());
-
         return result;
     }
 
@@ -107,8 +104,6 @@ public class OrderUtil {
                                 BigDecimal::add
                         )
                 ));
-
-        System.out.println("ex3-----------------------------------" + revenuePerProd);
 
         result = revenuePerProd.entrySet().stream()
                 .sorted(Map.Entry.<String, BigDecimal>comparingByValue().reversed())
@@ -134,14 +129,11 @@ public class OrderUtil {
                         )
                 );
 
-        System.out.println("ex 4----------------------------------------" + intermediateMap);
-
         result = intermediateMap.entrySet().stream()
                 .filter(x -> x.getValue().size() >= minCategories)
                 .map(Map.Entry::getKey)
                 .collect(Collectors.toList());
 
-        System.out.println("ex 4----------------------------------------" + result);
 
         return result;
     }
@@ -156,8 +148,6 @@ public class OrderUtil {
         Optional<Order> op = orders.stream()
                 .filter(x -> x.getProductName().toLowerCase().contains(product.toLowerCase()))
                 .findFirst();
-
-        System.out.println("ex 5 ----------------------------------" + op);
 
         return op;
     }
